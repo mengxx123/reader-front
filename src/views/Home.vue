@@ -57,18 +57,13 @@
             if (text) {
                 this.content = text
             }
-            
-            let intent = new IntentEx(data => {
+            // eslint-disable-next-line
+            new IntentEx(data => {
                 this.content = data
-            }, error => {
+            }, () => {
                 console.log('不支持啊')
             })
-
-            // document.getElementById('send').addEventListener("click", function() {
-            //     console.log('editor send message')
-            //     let data = document.getElementById('data').value
-            //     intent.sendResponse(data)
-            // }, false);
+            // intent.sendResponse(data)
         },
         methods: {
             setting() {
