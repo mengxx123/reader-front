@@ -53,19 +53,28 @@
             }
         },
         mounted() {
-            let text = this.$route.query.text
-            if (text) {
-                this.content = text
-            }
-            // eslint-disable-next-line
-            new IntentEx(data => {
-                this.content = data
-            }, () => {
-                console.log('不支持啊')
-            })
-            // intent.sendResponse(data)
+            this.init()
         },
         methods: {
+            init() {
+                // text parameter support
+                let text = this.$route.query.text
+                if (text) {
+                    this.content = text
+                }
+                // url parameter support
+                let url = this.$route.query.url
+                if (url) {
+                    this.loadTextFromUrl(url)
+                }
+                // eslint-disable-next-line
+                new IntentEx(data => {
+                    this.content = data
+                }, () => {
+                    console.log('不支持啊')
+                })
+                // intent.sendResponse(data)
+            },
             setting() {
                 this.toggle()
             },
@@ -87,6 +96,20 @@
                     console.log(content)
                 }
                 reader.readAsText(file, 'utf-8')
+            },
+            loadTextFromUrl(url) {
+                this.$http.get(url).then(
+                    response => {
+                        let data = response.data
+                        if (/\.md$/.test(url)) {
+                            console.log('markdown')
+                        } else {
+                            this.content = marked(data)
+                        }
+                    },
+                    response => {
+                        console.log(response)
+                    })
             }
         }
     }
