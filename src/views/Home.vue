@@ -1,9 +1,9 @@
 <template>
     <my-page :title="title" :page="page">
-        <ui-raised-button class="file-btn" label="打开 TXT" v-if="!content">
+        <ui-raised-button class="file-btn" label="打开文本文件" v-if="!content">
             <input type="file" class="ui-file-button" @change="fileChange($event, 1)">
         </ui-raised-button>
-        <ui-article v-html="content" v-if="isMarkdown"></ui-article>
+        <ui-article class="article" v-html="html" v-if="isMarkdown"></ui-article>
         <pre class="content" :style="contentStyle" v-if="!isMarkdown">{{ content }}</pre>
         <ui-drawer right :open="open" :docked="false" @close="toggleSetting()">
             <ui-appbar title="设置">
@@ -13,9 +13,11 @@
                 <ui-checkbox class="checkbox" v-model="isMarkdown" label="Markdown"/>
                 <ui-text-field type="number" v-model.number="style.fontSize" label="字体大小" />
                 <br>
-                <ui-raised-button class="file-btn" label="打开 TXT">
+                <ui-raised-button class="file-btn" label="打开文本文件">
                     <input type="file" class="ui-file-button" @change="fileChange($event, 1)">
                 </ui-raised-button>
+
+                <ui-raised-button class="btn" label="编辑文本" @click="edit" v-if="content" />
             </div>
         </ui-drawer>
     </my-page>
@@ -23,12 +25,14 @@
 
 <script>
     const marked = window.marked
+    const Intent = window.Intent
 
     export default {
         data () {
             return {
                 title: '文本阅读器',
                 content: '',
+                html: '',
                 isMarkdown: false,
                 open: false,
                 style: {
@@ -72,12 +76,22 @@
                 if (window.intent) {
                     this.content = window.intent.data
                 }
-//                new IntentEx(data => {
-//                    this.content = data
-//                }, () => {
-//                    console.log('不支持啊')
-//                })
-                // intent.sendResponse(data)
+            },
+            edit() {
+                let intent = new Intent({
+                    action: 'http://webintent.yunser.com/edit',
+                    type: 'text/plain',
+                    data: this.content
+                })
+                navigator.startActivity(intent, data => {
+                    console.log('成功了')
+                    this.content = data
+                    if (this.isMarkdown) {
+                        this.html = marked(this.content)
+                    }
+                }, data => {
+                    console.log('失败')
+                })
             },
             toggleSetting() {
                 this.open = !this.open
@@ -95,7 +109,8 @@
                     let content = e.target.result
                     if (/\.md$/.test(file.name)) {
                         this.isMarkdown = true
-                        this.content = marked(content.toString())
+                        this.content = content.toString()
+                        this.html = marked(content.toString())
                     } else {
                         this.content = content.toString()
                     }
@@ -110,7 +125,8 @@
                         if (/\.md$/.test(url)) {
                             console.log('markdown')
                             this.isMarkdown = true
-                            this.content = marked(data)
+                            this.content = data
+                            this.html = marked(data)
                         } else {
                             this.content = data
                         }
@@ -142,5 +158,9 @@
 }
 .file-btn {
     margin-top: 16px;
+}
+.article {
+    margin: 0 auto;
+    max-width: 800px;
 }
 </style>
