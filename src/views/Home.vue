@@ -1,8 +1,5 @@
 <template>
     <my-page :title="title" :page="page">
-        <ui-raised-button class="file-btn" label="打开文本文件" v-if="!content">
-            <input type="file" class="ui-file-button" @change="fileChange($event, 1)">
-        </ui-raised-button>
         <ui-article class="article" v-html="html" v-if="isMarkdown"></ui-article>
         <pre class="content" :style="contentStyle" v-if="!isMarkdown">{{ content }}</pre>
         <ui-drawer right :open="open" :docked="false" @close="toggleSetting()">
@@ -12,12 +9,6 @@
             <div class="body">
                 <ui-checkbox class="checkbox" v-model="isMarkdown" label="Markdown"/>
                 <ui-text-field type="number" v-model.number="style.fontSize" label="字体大小" />
-                <br>
-                <ui-raised-button class="file-btn" label="打开文本文件">
-                    <input type="file" class="ui-file-button" @change="fileChange($event, 1)">
-                </ui-raised-button>
-
-                <ui-raised-button class="btn" label="编辑文本" @click="edit" v-if="content" />
             </div>
         </ui-drawer>
     </my-page>
@@ -40,6 +31,12 @@
                 },
                 page: {
                     menu: [
+                        {
+                            type: 'icon',
+                            icon: 'all_inclusive',
+                            click: this.link,
+                            title: '用其他应用打开'
+                        },
                         {
                             type: 'icon',
                             icon: 'settings',
@@ -96,14 +93,22 @@
             toggleSetting() {
                 this.open = !this.open
             },
+            link() {
+                let intent = new Intent({
+                    action: 'http://webintent.yunser.com/?',
+                    type: 'text/plain',
+                    data: this.content
+                })
+                navigator.startActivity(intent, data => {
+                    console.log('成功')
+                    this.content = data
+                }, data => {
+                    console.log('失败')
+                })
+            },
             fileChange(e) {
                 let file = e.target.files[0]
                 this.title = file.name
-                // if (left === 1) {
-                //     var f_name = file.name;
-                //     var f_type = f_name.substring(f_name.lastIndexOf("."))
-                // }
-                // _this.result = {}
                 let reader = new FileReader()
                 reader.onload = e => {
                     let content = e.target.result
